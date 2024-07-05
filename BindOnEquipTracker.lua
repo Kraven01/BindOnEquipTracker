@@ -86,7 +86,6 @@ local lastItemButton = nil
 -- Function to create a dungeon button
 local function CreateDungeonButton(name, iconPath, yOffset)
     local dungeonButton = CreateFrame("Button", name.."Button", content, "UIPanelButtonTemplate");
-    -- dungeonButton:SetSize(200, 40);
     if lastWindowButton == content then
         dungeonButton:SetPoint("TOP", lastWindowButton,"TOP", 0, lastWindowButtonDistance);
     else 
@@ -97,16 +96,6 @@ local function CreateDungeonButton(name, iconPath, yOffset)
     dungeonButton:SetPoint("RIGHT", lastWindowButton, "LEFT", 0, 0);
     dungeonButton:SetHeight(17);
     dungeonButton:DisableDrawLayer("BACKGROUND");
-    
-    -- local dungeonIcon = dungeonButton:CreateTexture(nil, "BACKGROUND")
-    -- dungeonIcon:SetSize(32, 32)
-    -- dungeonIcon:SetPoint("LEFT", dungeonButton, "LEFT", 5, 0)
-    -- dungeonIcon:SetTexture(iconPath)
-    -- local dungeonName = dungeonButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    -- dungeonName:SetPoint("LEFT", dungeonIcon, "RIGHT", 10, 0)
-    -- dungeonName:SetText(name)
-
-
 
     dungeonButton:SetText(name);
     dungeonButton:GetFontString():SetPoint("LEFT", dungeonButton, "LEFT", 5 ,0)
@@ -116,15 +105,6 @@ local function CreateDungeonButton(name, iconPath, yOffset)
     tinsert(WindowButtons[name], lastItemButton)
     lastWindowButtonDistance = -1;
     lastWindowButton = dungeonButton;
-    -- tinsert(WindowButtons, dungeonButton)
-
-    
-    -- local dungeonIcon = dungeonButton:CreateTexture(nil, "BACKGROUND")
-    -- dungeonIcon:SetSize(32, 32)
-    -- dungeonIcon:SetPoint("LEFT", dungeonButton, "LEFT", 5, 0)
-    -- dungeonIcon:SetTexture(iconPath)
-    
-    -- dungeonName:SetPoint("LEFT", dungeonIcon, "RIGHT", 10, 0)
     
     return dungeonButton
 end
@@ -140,19 +120,10 @@ local function UpdatePositions(dungeonButton)
             if reachedTrue then 
                 currentDungeonButton:SetPoint("TOP", lastDungeonButton, "BOTTOM", 0 , lastWindowButtonDistance)
             else
-                print("elsecase")
                 currentDungeonButton:SetPoint("TOP", lastItemButton, "BOTTOM", 0 , lastWindowButtonDistance)
             end
             break
         end
-
-        -- print(dungeonButton:GetText())
-        -- print("--------")
-        -- print(button:GetText())
-        -- print(dungeonButton:GetText())
-        -- print(positionData[1])
-        -- print(positionData[2])
-        -- print(positionData[3])
         
         if name == dungeonButton:GetText() then
             pressedButtonReached = true;
@@ -175,22 +146,10 @@ local function CreateItemButton(itemID, yOffset, parent)
     lastButtonInserted = itemButton
 
     itemButton:Hide()
-
-    -- itemButton:SetSize(200, 40)
-    -- itemButton:SetPoint("TOP", -30, yOffset)
-    -- itemButton:Hide()
-    
-    -- local itemIcon = itemButton:CreateTexture(nil, "BACKGROUND")                                     
-    -- itemIcon:SetSize(32, 32)
-    -- itemIcon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
-    
-    -- local itemName = itemButton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    -- itemName:SetPoint("LEFT", itemIcon, "RIGHT", 10, 0)
     
     local function UpdateItemInfo()
         local itemNameText, _, _, _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
         if itemNameText and itemIconPath then
-            -- itemIcon:SetTexture(itemIconPath)
             itemButton:SetText(itemNameText)
             itemButton:GetFontString():SetPoint("LEFT", itemButton, "LEFT", 5 ,0)
         else
@@ -251,45 +210,9 @@ local function CountElementInList(list)
     return counter
 end
 
--- Function to update positions of dungeon and item buttons
--- local function UpdateButtonPositions(dungeonNameClicked, dungeonButtonClicked)
---     local yOffset = -40
---     local buttonReached = false
---     for dungeonName, dungeonButton in pairs(dungeonButtons) do
---         yOffset = yOffset - 50
---         if buttonReached then
---             dungeonButton[1]:SetPoint(defaultAnchor, defaultDungeonButtonXOffset, yOffset)
---             yOffset = yOffset - 50
---             print(itemButtons[dungeonName])
---             for _, itemButton in ipairs(itemButtons[dungeonName]) do
---                 itemButton:SetPoint(defaultAnchor, defaultItemButtonXOffset, yOffset)
---                 yOffset = yOffset - 40
---             end
---         end
---         if dungeonName == dungeonNameClicked then
---             buttonReached = true
---             local itemButtonsInList = CountElementInList(itemButtons[dungeonName])
---             local additionalOffset = -40 * itemButtonsInList
---             yOffset = yOffset - 40
---             print(itemButtonsInList)
---         end
---     end
---     print("test")
---     -- for dungeonIndex, dungeonButton in ipairs(dungeonButtons) do
---     --     dungeonButton:SetPoint("TOP", 0, yOffset)
---     --     yOffset = yOffset - 50
---     --     for _, itemButton in ipairs(itemButtons[dungeonIndex]) do
---     --         itemButton:SetPoint("TOP", 0, yOffset)
---     --         yOffset = yOffset - 50
---     --     end
---     -- end
--- end
-
-
 -- Create dungeon buttons and corresponding item buttons
 local yOffset = -10
 for dungeonName, dungeonData in pairs(dungeons) do
-    print(dungeonName)
     local dungeonButton = CreateDungeonButton(dungeonName, dungeonData.icon, yOffset)
     dungeonButtons[dungeonName] = {}
     buttonStates[dungeonName] = false
@@ -310,16 +233,16 @@ local function SlashCmdHandler(msg, editBox)
     elseif msg == "hide" then
         frame:Hide()
     else
-        print("Usage: /dungeoncollector show or /dungeoncollector hide")
+        print("Usage: /bt show or /bt hide")
     end
 end
 
-SLASH_DUNGEONCOLLECTOR1 = "/dungeoncollector"
-SLASH_DUNGEONCOLLECTOR2 = "/dungencollector"
-SlashCmdList["DUNGEONCOLLECTOR"] = SlashCmdHandler
+SLASH_BINDONEQUIPTRACKER1  = "/bt"
+SLASH_BINDONEQUIPTRACKER2  = "/boetracker"
+SlashCmdList["BINDONEQUIPTRACKER"] = SlashCmdHandler
 
 local function OnPlayerLogin(self, event, ...)
-    print("DungeonCollector addon loaded. Type /dungeoncollector show to display the frame or /dungeoncollector hide to hide it.")
+    print("boetracker addon loaded. Type /boetracker show to display the frame or /boetracker hide to hide it.")
 end
 
 local eventFrame = CreateFrame("Frame")

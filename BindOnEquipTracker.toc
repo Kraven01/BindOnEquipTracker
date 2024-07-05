@@ -1,8 +1,8 @@
 ## Interface: 90005
-## Title: Dungeon Collector
+## Title: BindOnEquipTracker
 ## Notes: Collects dungeon items
 ## Author: YourName
 ## Version: 1.0.0
 
-DungeonCollector.xml
-DungeonCollector.lua
+BindOnEquipTracker.xml
+BindOnEquipTracker.lua
