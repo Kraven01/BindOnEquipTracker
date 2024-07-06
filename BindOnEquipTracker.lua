@@ -18,9 +18,14 @@ local WindowButtons = {}
 local lastWindowButtonDistance = -8
 
 -- Store all created buttons
-local dungeonButtons = {}
+local dungeonButtonsList = {}
 local itemButtons = {}
+ -- local expensionButtons = {}
 local buttonStates = {}
+local buttonSetup = {};
+local expensionButtons = {}
+local expensionCategoryButtons = {}
+local expensionCategoryInnerButtons = {}
 
 -- Create the scroll frame
 local scrollFrame = CreateFrame("ScrollFrame", "ScrollFrame", frame, "UIPanelScrollFrameTemplate")
@@ -45,21 +50,41 @@ scrollBar:SetScript("OnValueChanged", function(self, value)
     self:GetParent():SetVerticalScroll(value)
 end)
 
+local expensions = {
+    ["Classic"] = {
+        Dungeons = {
+            "Zul Gurub",
+            "Molten Core"
+        },
+        Raids = {
+            "Test Core"
+        }
+    },
+    ["Cataclysm"] = {
+        Dungeons = {
+            "Zul Gurub",
+            "Molten Core"
+        },
+        Raids = {
+            "Test Core"
+        }
+    },
+    ["Pandaria"] = {
+        Dungeons = {
+            "Zul Gurub",
+            "Molten Core"
+        },
+        Raids = {
+            "Test Core"
+        }
+    },
+}
 
 -- Table to store dungeons and their associated items
 local dungeons = {
-    ["Molten Core"] = {
-        icon = "Interface\\ICONS\\INV_Spear_01",
-        items = {17182, 17076, 18803}
-    },
-    ["Test Core"] = {
-        icon = "Interface\\ICONS\\INV_Spear_02",
-        items = {17186, 19803, 18203}
-    },
-    ["Zul Gurub"] = {
-        icon = "Interface\\ICONS\\Achievement_Boss_Hakkar",
-        items = {1728, 19336, 19802, 1727}
-    },
+    ["Molten Core"] = {17182, 17076, 18803},
+    ["Test Core"] = {17186, 19803, 18203},
+    ["Zul Gurub"] = {1728, 19336, 19802, 1727},
 }
 
 local defaultAnchor = "TOP"
@@ -68,7 +93,32 @@ local defaultItemButtonXOffset = -30
 local elementHeight = 30
 
 
-
+local allCreatedButtons = {}
+local function AddElementToList(topName, innerName, newElement)
+    local expensionList = allCreatedButtons[topName]
+    local newList = {}
+    newList[innerName] = newElement
+    tinsert(expensionList, newList)
+    -- if expensionList then
+    --     for tset, expensionData in pairs(expensionList) do
+    --         if expensionData then
+    --             print("if")
+    --         else 
+    --             print("else")
+    --             expensionData = {}
+    --             expensionData[innerName] = newElement
+    --         print("tset: " .. tset)
+    --         -- print("Data: " .. expensionDataTest)
+    --     -- tinsert(expensionData[innerName], newElement)
+    --     end
+    -- end
+    -- for name, expensionData in pairs(allCreatedButtons) do
+    --     print("Name: " .. name)
+    -- end
+    -- print(allCreatedButtons)
+    -- print(allCreatedButtons[])
+    -- local expensionList = allCreatedButtons[topName]
+end
 
 local function getKeyPosition(key, tbl)
     local position = 1
@@ -83,57 +133,131 @@ end
 
 local lastWindowButton = content
 local lastItemButton = nil
--- Function to create a dungeon button
-local function CreateDungeonButton(name, iconPath, yOffset)
-    local dungeonButton = CreateFrame("Button", name.."Button", content, "UIPanelButtonTemplate");
+local function CreateExpensionButton(name)
+    local expensionButton = CreateFrame("Button", name.."Button", content, "UIPanelButtonTemplate");
     if lastWindowButton == content then
-        dungeonButton:SetPoint("TOP", lastWindowButton,"TOP", 0, lastWindowButtonDistance);
+        expensionButton:SetPoint("TOP", lastWindowButton,"TOP", 0, lastWindowButtonDistance);
     else 
-        dungeonButton:SetPoint("TOP", lastWindowButton,"BOTTOM", 0, lastWindowButtonDistance);
+        expensionButton:SetPoint("TOP", lastWindowButton,"BOTTOM", 0, lastWindowButtonDistance);
     end
         
-    dungeonButton:SetPoint("LEFT", lastWindowButton, "LEFT", 300, 0)
-    dungeonButton:SetPoint("RIGHT", lastWindowButton, "LEFT", 0, 0);
+    expensionButton:SetPoint("LEFT", lastWindowButton, "LEFT", 300, 0)
+    expensionButton:SetPoint("RIGHT", lastWindowButton, "LEFT", 0, 0);
+    expensionButton:SetHeight(17);
+    expensionButton:DisableDrawLayer("BACKGROUND");
+
+    expensionButton:SetText(name);
+    expensionButton:GetFontString():SetPoint("LEFT", expensionButton, "LEFT", 5 ,0)
+    expensionButtons[name] = {}
+    -- allCreatedButtons[name] = {};
+    -- local expensionData = {}
+    -- expensionData[expensionButton] = {}
+    -- tinsert(allCreatedButtons[name], expensionData)
+    lastWindowButton = expensionButton
+    return expensionButton
+end
+
+local lastCategoryInserted = nil
+local function CreateCategoryButton(name, parent)
+    local categoryButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
+    if lastCategoryInserted == nil then 
+        lastCategoryInserted = parent
+    end
+    
+    categoryButton:SetPoint("TOP", lastCategoryInserted,"BOTTOM", 0, lastWindowButtonDistance);
+   
+    categoryButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
+    categoryButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
+    categoryButton:SetHeight(17);
+    categoryButton:DisableDrawLayer("BACKGROUND");
+
+    categoryButton:SetText(name);
+    categoryButton:GetFontString():SetPoint("LEFT", categoryButton, "LEFT", 5 ,0)
+    categoryButton:Hide()
+    local parentText = parent:GetText()
+    tinsert(expensionButtons[parentText], categoryButton)
+    local combinedName = parentText .. name;
+    expensionCategoryButtons[combinedName] = {};
+    lastWindowButtonDistance = -1;
+    lastCategoryInserted = categoryButton;
+    -- AddElementToList(parent:GetText(), name, categoryButton)
+    
+    --tinsert(allCreatedButtons[name][1], categoryButton)
+
+    --allCreatedButtons[]
+    -- dungeonButtonsList[name] = {}
+    -- tinsert(dungeonButtonsList, dungeonButton);
+    
+    -- WindowButtons[name] = {}
+    -- tinsert(WindowButtons[name], dungeonButton)
+    -- tinsert(WindowButtons[name], lastWindowButton)
+    -- tinsert(WindowButtons[name], lastItemButton)
+    --lastWindowButton = dungeonButton;
+    
+    return categoryButton
+end
+
+
+local lastDungeonInserted = nil
+-- Function to create a dungeon button
+local function CreateDungeonButton(name, parent, tableName)
+    local dungeonButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
+    if lastDungeonInserted == nil then 
+        lastDungeonInserted = parent
+    end
+    
+    dungeonButton:SetPoint("TOP", lastDungeonInserted,"BOTTOM", 0, lastWindowButtonDistance);
+   
+    dungeonButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
+    dungeonButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
     dungeonButton:SetHeight(17);
     dungeonButton:DisableDrawLayer("BACKGROUND");
 
     dungeonButton:SetText(name);
     dungeonButton:GetFontString():SetPoint("LEFT", dungeonButton, "LEFT", 5 ,0)
-    WindowButtons[name] = {}
-    tinsert(WindowButtons[name], dungeonButton)
-    tinsert(WindowButtons[name], lastWindowButton)
-    tinsert(WindowButtons[name], lastItemButton)
+    dungeonButton:Hide()
+    tinsert(expensionCategoryButtons[tableName], dungeonButton)
+    local combinedName = tableName .. name
+    lastDungeonInserted = dungeonButton
+    --allCreatedButtons[]
+    -- dungeonButtonsList[name] = {}
+    -- tinsert(dungeonButtonsList, dungeonButton);
+    
+    -- WindowButtons[name] = {}
+    -- tinsert(WindowButtons[name], dungeonButton)
+    -- tinsert(WindowButtons[name], lastWindowButton)
+    -- tinsert(WindowButtons[name], lastItemButton)
     lastWindowButtonDistance = -1;
-    lastWindowButton = dungeonButton;
+    --lastWindowButton = dungeonButton;
     
     return dungeonButton
 end
 
 local function UpdatePositions(dungeonButton)
-    local pressedButtonReached = false;
-    local reachedTrue = false;
-    for name, positionData in pairs(WindowButtons) do
-        local currentDungeonButton = positionData[1]
-        local lastDungeonButton = positionData[2]
-        local lastItemButton = positionData[3]
-        if pressedButtonReached then
-            if reachedTrue then 
-                currentDungeonButton:SetPoint("TOP", lastDungeonButton, "BOTTOM", 0 , lastWindowButtonDistance)
-            else
-                currentDungeonButton:SetPoint("TOP", lastItemButton, "BOTTOM", 0 , lastWindowButtonDistance)
-            end
-            break
-        end
+    -- local pressedButtonReached = false;
+    -- local reachedTrue = false;
+    -- for name, positionData in pairs(WindowButtons) do
+    --     local currentDungeonButton = positionData[1]
+    --     local lastDungeonButton = positionData[2]
+    --     local lastItemButton = positionData[3]
+    --     if pressedButtonReached then
+    --         if reachedTrue then 
+    --             currentDungeonButton:SetPoint("TOP", lastDungeonButton, "BOTTOM", 0 , lastWindowButtonDistance)
+    --         else
+    --             currentDungeonButton:SetPoint("TOP", lastItemButton, "BOTTOM", 0 , lastWindowButtonDistance)
+    --         end
+    --         break
+    --     end
         
-        if name == dungeonButton:GetText() then
-            pressedButtonReached = true;
-            reachedTrue = buttonStates[name];
-        end
-    end
+    --     if name == dungeonButton:GetText() then
+    --         pressedButtonReached = true;
+    --         reachedTrue = buttonStates[name];
+    --     end
+    -- end
 end
 local lastButtonInserted = nil
 -- Function to create an item button
-local function CreateItemButton(itemID, yOffset, parent)
+local function CreateItemButton(itemID, parent, tableName)
     local itemButton = CreateFrame("Button", "ItemButton"..itemID, parent, "UIPanelButtonTemplate")
     if lastButtonInserted == nil then
         lastButtonInserted = parent
@@ -144,7 +268,8 @@ local function CreateItemButton(itemID, yOffset, parent)
     itemButton:SetHeight(17); 
     itemButton:DisableDrawLayer("BACKGROUND");
     lastButtonInserted = itemButton
-
+    -- TODO: Add element to buttonList for categoryduneonInnerButtons 
+    -- Add Toggle script
     itemButton:Hide()
     
     local function UpdateItemInfo()
@@ -177,9 +302,9 @@ end
 
 
 -- Function to toggle item buttons for a specific dungeon
-local function ToggleItemButtons(dungeonName)
-    for _, button in ipairs(itemButtons[dungeonName]) do
-        buttonStates[dungeonName] = button:IsShown();
+local function ToggleItemButtons(listOfButtons)
+    for name , buttonList in ipairs(listOfButtons) do
+        --buttonStates[dungeonName] = button:IsShown();
         if button:IsShown() then
             button:Hide()
         else
@@ -210,20 +335,61 @@ local function CountElementInList(list)
     return counter
 end
 
+local function ToggleButtons(listOfButtons)
+    for _, button in ipairs(listOfButtons) do
+        if button:IsShown() then
+            button:Hide()
+        else
+            button:Show()
+        end
+    end
+end
+
 -- Create dungeon buttons and corresponding item buttons
-local yOffset = -10
-for dungeonName, dungeonData in pairs(dungeons) do
-    local dungeonButton = CreateDungeonButton(dungeonName, dungeonData.icon, yOffset)
-    dungeonButtons[dungeonName] = {}
-    buttonStates[dungeonName] = false
-    table.insert(dungeonButtons[dungeonName], dungeonButton)
-    yOffset = yOffset - 40
-    lastItemButton = PreLoadItemButtons(dungeonName, dungeonData, dungeonButton)
-    dungeonButton:SetScript("OnClick", function()
-        -- UpdateButtonPositions(dungeonName, dungeonButton)
-        ToggleItemButtons(dungeonName)
-        UpdatePositions(dungeonButton)
+-- local yOffset = -10
+-- for dungeonName, dungeonData in pairs(dungeons) do
+--     local dungeonButton = CreateDungeonButton(dungeonName, dungeonData.icon, yOffset)
+--     dungeonButtons[dungeonName] = {}
+--     buttonStates[dungeonName] = false
+--     table.insert(dungeonButtons[dungeonName], dungeonButton)
+--     yOffset = yOffset - 40
+--     lastItemButton = PreLoadItemButtons(dungeonName, dungeonData, dungeonButton)
+--     dungeonButton:SetScript("OnClick", function()
+--         -- UpdateButtonPositions(dungeonName, dungeonButton)
+--         ToggleItemButtons(dungeonName)
+--         UpdatePositions(dungeonButton)
+--     end)
+-- end
+
+for expansion, content in pairs(expensions) do
+    --print("Expansion: " .. expansion)
+    local expensionButton = CreateExpensionButton(expansion)
+    lastCategoryInserted = nil
+    expensionButton:SetScript("OnClick", function()
+        ToggleButtons(expensionButtons[expansion])
+        -- print(allCreatedButtons[expansion])
+        -- testSystem(allCreatedButtons[expansion])
+        -- --ToggleItemButtons(allCreatedButtons[expansion])
     end)
+    -- Iterate through dungeons and raids
+    for contentType, contentList in pairs(content) do
+       -- print("  " .. contentType .. ":")
+        local categoryButton = CreateCategoryButton(contentType, expensionButton)
+        lastDungeonInserted = nil;
+        local mergedName = expansion .. contentType
+        categoryButton:SetScript("OnClick", function()
+            ToggleButtons(expensionCategoryButtons[mergedName])
+        end);
+    --     -- Iterate through each dungeon or raid
+        for _, instance in ipairs(contentList) do
+            local dungeonButton = CreateDungeonButton(instance, categoryButton, mergedName)
+            local mergedNameForItemTable = mergedName .. instance
+            local lootTable = dungeons[instance];
+            for _, itemData in pairs(dungeons[instance]) do
+                local itemButton = CreateItemButton(itemData, dungeonButton, mergedNameForItemTable)
+            end
+        end
+    end
 end
 
 
