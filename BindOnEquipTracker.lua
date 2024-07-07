@@ -55,41 +55,78 @@ end)
 local expensions = {
     ["Classic"] = {
         Dungeons = {
-            "Zul Gurub",
-            "Molten Core"
+            "Blackfathom Deeps",
+            "Blackrock Depths",
+            "Deadmines",
+            "Dire Maul",
+            "Gnomeregan",
+            "Lower Blackrock Spire",
+            "Razorfen Downs",
+            "Razorfen Kraul",
+            "Scarlet Halls",
+            "Scarlet Monastery",
+            "Scholomance",
+            "Shadowfang Keep",
+            "Stratholme",
+            "The Temple of Atal'hakkr",
+            "Uldaman",
+            "Wailing Caverns",
+            "Zul'Farrak",
         },
         Raids = {
-            "Test Core"
+            "Molten Core",
+            "Blackwin Lair",
+            "Ruins of Ahn'Qiraj"
         }
     },
-    ["Cataclysm"] = {
-        Dungeons = {
-            "Zul Gurub",
-            "Molten Core"
-        },
-        Raids = {
-            "Test Core"
-        }
-    },
-    ["Pandaria"] = {
-        Dungeons = {
-            "Zul Gurub",
-            "Molten Core"
-        },
-        Raids = {
-            "Test Core"
-        }
-    },
+    -- ["Cataclysm"] = {
+    --     Dungeons = {
+    --         "Zul Gurub",
+    --         "Molten Core"
+    --     },
+    --     Raids = {
+    --         "Test Core"
+    --     }
+    -- },
+    -- ["Pandaria"] = {
+    --     Dungeons = {
+    --         "Zul Gurub",
+    --         "Molten Core"
+    --     },
+    --     Raids = {
+    --         "Test Core"
+    --     }
+    -- },
 }
 
 -- Table to store dungeons and their associated items
+-- local dungeons = {
+--     ["Molten Core"] = {17182, 17076, 18803},
+--     ["Test Core"] = {17186, 19803, 18203},
+--     ["Zul Gurub"] = {1728, 19336, 19802, 1727},
+-- }
 local dungeons = {
-    ["Molten Core"] = {17182, 17076, 18803},
-    ["Test Core"] = {17186, 19803, 18203},
-    ["Zul Gurub"] = {1728, 19336, 19802, 1727},
+["Blackfathom Deeps"] = { 1486,3416,1491,3413,2567,3417,1454,1481,3414,3415,2271,4410},
+["Blackrock Depths"] = { 12552,12551,12542,12546,12550,12547,12549,12555,12531,12535,12527,12528,12532,15781,15770,16053,16049,16048,18654,18661,11754,11078,18945,64304,64313},
+["Deadmines"] = { 10401,10400,1951,1928,1925,1943,1936,1944,8492,1958,1930,120138,1926,1945,5787},
+["Dire Maul"] = {9434,18295,18344,18298,18296,18289,18340,18338,18487,18339,18337,18365},
+["Gnomeregan"] = {9508,9491,9509,9510,9538,9487,9485,9488,9486,9490,9327,5108,},
+["Lower Blackrock Spire"] = {14513,16250,15749,15775,13494},
+["Razorfen Downs"] = {10581,10578,10574,10583,10582,10584,10567,10571,10573,10570,10572},
+["Razorfen Kraul"] = {2264,1978,1488,4438,2039,776,1727,2549,1976,1975},
+["Scarlet Halls"] = {7754,7786,7787,8226,7727},
+["Scarlet Monastery"] = {7759,7728,7753,7729,7730,7752,7736,7755,7754,7786,7787,7758,10329,10332,10328,10331,10333,5756,7761,5819,1992,8225,8226,7760,7727,7757},
+["Scholomance"] = {16255,18702,14536,18697,18699,18700,18698},
+["Shadowfang Keep"] = {1935,3194,2205,1483,1489,2807,1974,2292,1318,1482,1484},
+["Stratholme"] = {206374,142337,18743,17061,18741,18744,18736,18745,18742,12811,16249,18658,16052,16248,74274},
+["The Temple of Atal'hakkr"] = {78346,78345,10627,10628,10626,10625,10624,10623,10630,10632,10631,10633,10629},
+["Uldaman"] = {9420,9392,9393,9465,9381,9397,9386,9424,9396,9429,9426,9383,9431,9425,9422,9432,9430,9406,9427,9384,9423,9391,9428,9378,9375,9382},
+["Wailing Caverns"] = {48114,10413,132743},
+["Zul'Farrak"] = {142402,9512,9511,9480,9483,5616,9484,9481,2040,9482,204406},
+["Molten Core"] = {16802,16799,16864,16861,16828,16830,16838,16840,16806,16804,16851,16850,16817,16858,16857,16827,16825,16819,170100,17011,18260,18259,21371,18265,18257,11382},
+["Blackwin Lair"] = {18562},
+["Ruins of Ahn'Qiraj"] = {21801,21804,21803,21805,21800,21802},
 }
-
-
 local function tablelength(T)
     local count = 0
     for _ in pairs(T) do count = count + 1 end
