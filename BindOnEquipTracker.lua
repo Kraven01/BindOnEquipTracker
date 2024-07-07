@@ -118,6 +118,7 @@ local function CreateExpensionButton(name)
     buttonMappings[name] = {}
     tinsert(buttonMappings[name], expensionButton)
     tinsert(buttonMappings[name], lastWindowButton)
+    lastWindowButtonDistance = -1;
 
     lastWindowButton = expensionButton
     return expensionButton
@@ -144,18 +145,11 @@ local function CreateCategoryButton(name, parent)
     tinsert(expensionButtons[parentText], categoryButton)
     local combinedName = parentText .. name;
     expensionCategoryButtons[combinedName] = {};
-    lastWindowButtonDistance = -1;
 
     buttonMappings[combinedName] = {}
     tinsert(buttonMappings[combinedName], categoryButton)
     tinsert(buttonMappings[combinedName], lastCategoryInserted)
-    
-    -- WindowButtons[name] = {}
-    -- tinsert(WindowButtons[name], dungeonButton)
-    -- tinsert(WindowButtons[name], lastWindowButton)
-    -- tinsert(WindowButtons[name], lastItemButton)
-    --lastWindowButton = dungeonButton;
-    
+
     lastCategoryInserted = categoryButton;
     return categoryButton
 end
@@ -199,46 +193,148 @@ local function CreateDungeonButton(name, parent, tableName)
     return dungeonButton
 end
 
-local function UpdatePositions()
-    -- local pressedButtonReached = false;
-    -- local reachedTrue = false;
-    -- for name, positionData in pairs(WindowButtons) do
-    --     local currentDungeonButton = positionData[1]
-    --     local lastDungeonButton = positionData[2]
-    --     local lastItemButton = positionData[3]
-    --     if pressedButtonReached then
-    --         if reachedTrue then 
-    --             currentDungeonButton:SetPoint("TOP", lastDungeonButton, "BOTTOM", 0 , lastWindowButtonDistance)
-    --         else
-    --             currentDungeonButton:SetPoint("TOP", lastItemButton, "BOTTOM", 0 , lastWindowButtonDistance)
-    --         end
-    --         break
-    --     end
-        
-    --     if name == dungeonButton:GetText() then
-    --         pressedButtonReached = true;
-    --         reachedTrue = buttonStates[name];
-    --     end
-    -- end
+local function UpdateTopAnchor(listToSearchForButton, buttonPressed, parentButton, lastButtonInUpperElement, prefix)
+    local pressedButton = false;
+    for name, _ in pairs(listToSearchForButton) do 
+        if pressedButton then
+            local mergedName = prefix .. name
+            local currentButton = buttonMappings[mergedName][1]
+            if lastButtonInUpperElement:IsShown() then 
+                currentButton:SetPoint("TOP", lastButtonInUpperElement, "BOTTOM", 0, lastWindowButtonDistance)
+            else 
+                currentButton:SetPoint("TOP", buttonPressed, "BOTTOM", lastWindowButtonDistance) 
+            end
+            return
+        end
+        if parentButton:GetText() == name then
+            pressedButton = true;
+        end;
+    end
+    return true;
 end
+
+
+local function CheckLastVisibleForCategory(categoryName, expansionName)
+    local elementsInList = tablelength(expensionCategoryButtons[expansionName .. categoryName]);
+    local lastButtonInList = expensionCategoryButtons[expansionName .. categoryName][elementsInList]
+    local lastButtonText = lastButtonInList:GetText()
+    local mergedText = expansionName .. categoryName .. lastButtonText;
+    local elementsInInstanceList = tablelength(expensionCategoryInnerButtons[mergedText])
+    local lastDungeonButton = expensionCategoryInnerButtons[mergedText][elementsInInstanceList];
+    if lastDungeonButton:IsShown() then
+        return lastDungeonButton;
+    else
+        return lastButtonInList;
+    end
+
+end
+
+local function CheckLastsVisible(expensionName)
+    local elementsInList = tablelength(expensionButtons[expensionName]);
+    local lastButtonInList = expensionButtons[expensionName][elementsInList]
+    local lastButtonText = lastButtonInList:GetText()
+    local mergedText = expensionName .. lastButtonText;
+    local elementsInInstanceList = tablelength(expensionCategoryButtons[mergedText])
+    local lastDungeonButton = expensionCategoryButtons[mergedText][elementsInInstanceList];
+    if lastDungeonButton:IsShown() then
+        local mergedInstanceName = mergedText .. lastDungeonButton:GetText()
+        local elementsInItemList = tablelength(expensionCategoryInnerButtons[mergedInstanceName])
+        local lastItemButton = expensionCategoryInnerButtons[mergedInstanceName][elementsInItemList]
+        if lastItemButton:IsShown() then
+            return lastItemButton;
+        else
+            return lastDungeonButton;
+        end
+    else
+        return lastButtonInList;
+    end
+
+end
+
 
 local function UpdateExpensionPositions(expensionButtonPressed, expensionList)
     local pressedButton = false;
+    local lastButtonInUpperElement
     for name , data in pairs(expensionList) do
         if pressedButton then
             local currentButton = buttonMappings[name][1]
             local elementsInUpperList = tablelength(expensionButtons[expensionButtonPressed:GetText()])
             local lastButtonInUpperElement = expensionButtons[expensionButtonPressed:GetText()][elementsInUpperList]
+            -- local categoryName = expensionButtonPressed:GetText() .. lastButtonInUpperElement:GetText()
+            local lastVisibleButton = CheckLastsVisible(expensionButtonPressed:GetText())
+            -- local hit = CheckLastsVisible(categoryName, expensionCategoryButtons)
             if (lastButtonInUpperElement:IsShown()) then 
-                currentButton:SetPoint("TOP", buttonMappings[name][2], "BOTTOM", 0, lastWindowButtonDistance)
+                currentButton:SetPoint("TOP", lastVisibleButton, "BOTTOM", 0, lastWindowButtonDistance)
             else 
-                currentButton:SetPoint("TOP", lastButtonInUpperElement, "BOTTOM", 0, lastWindowButtonDistance)
+                currentButton:SetPoint("TOP", buttonMappings[name][2], "BOTTOM", 0, lastWindowButtonDistance)
             end
             break
         end
         if name == expensionButtonPressed:GetText() then
             pressedButton = true;
         end
+    end
+end
+
+
+-- local function UpdateAnchorOfCategory(listToSearchFor, )
+
+-- TODO: Handle case last category pressed
+local function UpdateCategoryPositions(categoryButtonPressed, expensionButtonParent)
+    local parentText = expensionButtonParent:GetText()
+    local mergedCategoryButtonPressed = parentText .. categoryButtonPressed:GetText()
+    local pressedButton = false;
+    local lastButtonInUpperElement = nil;
+    local test = nil
+    for category, _ in pairs(expensions[parentText]) do
+        local mergedName = parentText .. category;
+        local currentButton = buttonMappings[mergedName][1]
+        local elementsInUpperList = tablelength(expensionCategoryButtons[mergedCategoryButtonPressed]);
+        lastButtonInUpperElement = expensionCategoryButtons[mergedCategoryButtonPressed][elementsInUpperList]
+        if pressedButton then
+            if (lastButtonInUpperElement:IsShown()) then 
+                currentButton:SetPoint("TOP", test, "BOTTOM", 0, lastWindowButtonDistance)
+            else 
+                currentButton:SetPoint("TOP", buttonMappings[mergedName][2], "BOTTOM", 0, lastWindowButtonDistance)
+            end
+            return;
+
+        end
+        if currentButton:GetText() == categoryButtonPressed:GetText() then
+            pressedButton = true;
+            test = CheckLastVisibleForCategory(category, parentText)
+        end
+    end
+    UpdateExpensionPositions(expensionButtonParent, expensions)
+end
+
+local function UpdateInstancePositions(instanceButtonPressed, categoryButtonParent, expensionName, expensionButton)
+    local categoryText = categoryButtonParent:GetText()
+    local mergedName = expensionName .. categoryText .. instanceButtonPressed:GetText()
+    local pressedButton = false;
+    local lastButtonInUpperElement = nil;
+    for _, instanceName in ipairs(expensions[expensionName][categoryText]) do
+        local mergedNameOfCurrentButton = expensionName .. categoryText .. instanceName;
+        local currentButton = buttonMappings[mergedNameOfCurrentButton][1];
+        local elementsInUpperList = tablelength(expensionCategoryInnerButtons[mergedName]);
+        lastButtonInUpperElement = expensionCategoryInnerButtons[mergedName][elementsInUpperList];
+        if pressedButton then
+            if (lastButtonInUpperElement:IsShown()) then 
+                currentButton:SetPoint("TOP", lastButtonInUpperElement, "BOTTOM", 0, lastWindowButtonDistance)
+            else 
+                currentButton:SetPoint("TOP", buttonMappings[mergedNameOfCurrentButton][2], "BOTTOM", 0, lastWindowButtonDistance)
+            end
+            return;
+        end
+        if currentButton:GetText() == instanceButtonPressed:GetText() then
+            pressedButton = true
+        end
+    end
+    -- 
+    --UpdateCategoryPositions(categoryButtonParent, expensionButton)
+    local couldNotFindSuccesor = UpdateTopAnchor(expensions[expensionName], instanceButtonPressed, categoryButtonParent, lastButtonInUpperElement, expensionName)
+    if couldNotFindSuccesor then
+        UpdateExpensionPositions(expensionButton, expensions)
     end
 end
 
@@ -293,7 +389,7 @@ end
 
 
 
-local function ToggleButtons(listOfButtons)
+local function ToggleButtons(listOfButtons, prefix, tableToSearch)
     for _, button in ipairs(listOfButtons) do
         if button:IsShown() then
             button:Hide()
@@ -308,22 +404,24 @@ for expansion, content in pairs(expensions) do
     local expensionButton = CreateExpensionButton(expansion)
     lastCategoryInserted = nil
     expensionButton:SetScript("OnClick", function()
+        ToggleButtons(expensionButtons[expansion], expansion, expensionCategoryButtons)
         UpdateExpensionPositions(expensionButton, expensions)
-        ToggleButtons(expensionButtons[expansion])
     end)
     for contentType, contentList in pairs(content) do
         local categoryButton = CreateCategoryButton(contentType, expensionButton)
         lastDungeonInserted = nil;
         local mergedName = expansion .. contentType
         categoryButton:SetScript("OnClick", function()
-            ToggleButtons(expensionCategoryButtons[mergedName])
+            ToggleButtons(expensionCategoryButtons[mergedName], expansion, expensionCategoryButtons)
+            UpdateCategoryPositions(categoryButton, expensionButton)
         end);
         for _, instance in ipairs(contentList) do
             local dungeonButton = CreateDungeonButton(instance, categoryButton, mergedName)
             lastitemButtonInserted = nil
             local mergedNameForItemTable = mergedName .. instance
             dungeonButton:SetScript("OnClick", function()
-                ToggleButtons(expensionCategoryInnerButtons[mergedNameForItemTable])
+                ToggleButtons(expensionCategoryInnerButtons[mergedNameForItemTable], mergedName)
+                UpdateInstancePositions(dungeonButton, categoryButton, expansion, expensionButton)
             end);
             for _, itemData in pairs(dungeons[instance]) do
                 local itemButton = CreateItemButton(itemData, dungeonButton, mergedNameForItemTable)
