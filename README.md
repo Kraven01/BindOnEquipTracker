@@ -50,3 +50,7 @@ Classic
 
 
 If you detect wrongly assigned items or missing items, feel free to report an issue through the GitHub or CurseForge project page. It is also possible to submit missing expansion/instance data through the above methods.
+
+
+## License
+This addon is licensed under the MIT License. See the LICENSE file for details.
