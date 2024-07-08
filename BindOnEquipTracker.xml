@@ -38,16 +38,4 @@
             </ScrollFrame>
         </Frames>
     </Frame>
-     <Button name="DungeonCollectorMinimapButton" parent="Minimap" size="32">
-        <Size x="32" y="32"/>
-        <Anchors>
-            <Anchor point="CENTER" x="75" y="-75"/>
-        </Anchors>
-        <HighlightTexture file="Interface\Minimap\UI-Minimap-ZoomButton-Highlight"/>
-        <Scripts>
-            <OnClick>
-                DungeonCollector:ToggleFrame();
-            </OnClick>
-        </Scripts>
-    </Button>
 </Ui>

@@ -1,7 +1,5 @@
--- Main frame
--- ,"BasicFrameTemplateWithInset"
-local frame = CreateFrame("Frame", "MyEmptyFrame", UIParent)
-frame:SetSize(350, 200)
+local frame = CreateFrame("Frame", "BindOnEquipTracerFrame", UIParent)
+frame:SetSize(350, 400)
 frame:SetPoint("CENTER")
 frame.texture = frame:CreateTexture()
 frame.texture:SetAllPoints(frame)
@@ -79,60 +77,84 @@ local expensions = {
             "Ruins of Ahn'Qiraj"
         }
     },
-    -- ["Cataclysm"] = {
-    --     Dungeons = {
-    --         "Zul Gurub",
-    --         "Molten Core"
-    --     },
-    --     Raids = {
-    --         "Test Core"
-    --     }
-    -- },
-    -- ["Pandaria"] = {
-    --     Dungeons = {
-    --         "Zul Gurub",
-    --         "Molten Core"
-    --     },
-    --     Raids = {
-    --         "Test Core"
-    --     }
-    -- },
 }
 
--- Table to store dungeons and their associated items
--- local dungeons = {
---     ["Molten Core"] = {17182, 17076, 18803},
---     ["Test Core"] = {17186, 19803, 18203},
---     ["Zul Gurub"] = {1728, 19336, 19802, 1727},
--- }
 local dungeons = {
-["Blackfathom Deeps"] = { 1486,3416,1491,3413,2567,3417,1454,1481,3414,3415,2271,4410},
+["Blackfathom Deeps"] = { 15311, 14565, 1486, 14370, 15500, 14372, 14172, 14125, 14133, 14746, 14747,14742,14749,14748,14743,15891, 3416,1491,3413,2567,3417,1454,1481,3414,3415,2271,4410},
 ["Blackrock Depths"] = { 12552,12551,12542,12546,12550,12547,12549,12555,12531,12535,12527,12528,12532,15781,15770,16053,16049,16048,18654,18661,11754,11078,18945,64304,64313},
 ["Deadmines"] = { 10401,10400,1951,1928,1925,1943,1936,1944,8492,1958,1930,120138,1926,1945,5787},
 ["Dire Maul"] = {9434,18295,18344,18298,18296,18289,18340,18338,18487,18339,18337,18365},
-["Gnomeregan"] = {9508,9491,9509,9510,9538,9487,9485,9488,9486,9490,9327,5108,},
+["Gnomeregan"] = {6592,6590,6595,6594,6596,6597,6591,6395,7110,6394,4036,6393,4037,4035,4714,9508,9491,9509,9510,9538,9487,9485,9488,9486,9490,9327,5108,},
 ["Lower Blackrock Spire"] = {14513,16250,15749,15775,13494},
-["Razorfen Downs"] = {10581,10578,10574,10583,10582,10584,10567,10571,10573,10570,10572},
-["Razorfen Kraul"] = {2264,1978,1488,4438,2039,776,1727,2549,1976,1975},
+["Razorfen Downs"] = {1981, 14834, 14838, 14841, 14833, 14839, 14843, 14840, 10581,10578,10574,10583,10582,10584,10567,10571,10573,10570,10572},
+["Razorfen Kraul"] = {15518, 15541, 15542, 15534, 15536, 15540, 2264,1978,1488,4438,2039,776,1727,2549,1976,1975},
 ["Scarlet Halls"] = {7754,7786,7787,8226,7727},
 ["Scarlet Monastery"] = {7759,7728,7753,7729,7730,7752,7736,7755,7754,7786,7787,7758,10329,10332,10328,10331,10333,5756,7761,5819,1992,8225,8226,7760,7727,7757},
 ["Scholomance"] = {16255,18702,14536,18697,18699,18700,18698},
-["Shadowfang Keep"] = {1935,3194,2205,1483,1489,2807,1974,2292,1318,1482,1484},
+["Shadowfang Keep"] = {14175,1935,3194,2205,1483,1489,2807,1974,2292,1318,1482,1484},
 ["Stratholme"] = {206374,142337,18743,17061,18741,18744,18736,18745,18742,12811,16249,18658,16052,16248,74274},
 ["The Temple of Atal'hakkr"] = {78346,78345,10627,10628,10626,10625,10624,10623,10630,10632,10631,10633,10629},
 ["Uldaman"] = {9420,9392,9393,9465,9381,9397,9386,9424,9396,9429,9426,9383,9431,9425,9422,9432,9430,9406,9427,9384,9423,9391,9428,9378,9375,9382},
 ["Wailing Caverns"] = {48114,10413,132743},
-["Zul'Farrak"] = {142402,9512,9511,9480,9483,5616,9484,9481,2040,9482,204406},
+["Zul'Farrak"] = {940,1168,14263,14441,15622,15628,15619,15627,15623,14796,14792,14794,14793,14948,14953,14955,14951,14949,14950,14842,14840,14843,14839,14835,14841,14838,14834,14920,14918,14914,14917,14970,14974,14966, 142402,9512,9511,9480,9483,5616,9484,9481,2040,9482,204406},
 ["Molten Core"] = {16802,16799,16864,16861,16828,16830,16838,16840,16806,16804,16851,16850,16817,16858,16857,16827,16825,16819,170100,17011,18260,18259,21371,18265,18257,11382},
 ["Blackwin Lair"] = {18562},
-["Ruins of Ahn'Qiraj"] = {21801,21804,21803,21805,21800,21802},
+["Ruins of Ahn'Qiraj"] = {14968,14971,14967,14974,14970,14972,14854,14859,14855,14857,14975,14977,14976,14978,14981,14983,15646,15640,15645,14798,14802,14805,14803,14922,14924,14926,14928,14317,14310,14314,14309,14311,14315,15649,15651,15654,15656,15650,15655,15694,15426,15431,15425,15429,15433,15658,15660,15663,15666,15659,15662,15665,15668,15672,15674,15669,15673,15676, 21801,21804,21803,21805,21800,21802},
 }
 local function tablelength(T)
     local count = 0
     for _ in pairs(T) do count = count + 1 end
     return count
   end
+ 
+  local rarityColorMapping = {
+    [0] = {
+        ["r"] = 0.62,
+        ["g"] = 0.62,
+        ["b"] = 0.62
+    },
+    [1] = {
+        ["r"] = 1.00,
+        ["g"] = 1.00,
+        ["b"] = 1.00
+    },
+    [2] = {
+        ["r"] = 0.12,
+        ["g"] = 1.00,
+        ["b"] = 0.00
+    },
+    [3] = {
+        ["r"] = 0.00,
+        ["g"] = 0.44,
+        ["b"] = 0.87
+    },
+    [4] = {
+        ["r"] = 0.64,
+        ["g"] = 0.21,
+        ["b"] = 0.93
+    },
+    [5] = {
+        ["r"] = 1.00,
+        ["g"] = 0.50,
+        ["b"] = 1.00
+    }
+}
 
+
+local rarityFontMapping = {}
+
+local function createRarityFontMapping()
+    for key, rgb in pairs(rarityColorMapping) do
+        local r = rgb["r"]
+        local g = rgb["g"]
+        local b = rgb["b"]
+
+        local customFont = CreateFont(key);
+        customFont:SetTextColor(r,g,b);
+        rarityFontMapping[key] = customFont;
+    end
+end
+createRarityFontMapping()
 
 local lastWindowButton = content
 local lastItemButton = nil
@@ -193,7 +215,6 @@ end
 
 
 local lastDungeonInserted = nil
--- Function to create a dungeon button
 local function CreateDungeonButton(name, parent, tableName)
     local dungeonButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
     if lastDungeonInserted == nil then 
@@ -219,14 +240,7 @@ local function CreateDungeonButton(name, parent, tableName)
     tinsert(buttonMappings[combinedName], lastDungeonInserted)
 
 
-    lastDungeonInserted = dungeonButton
-    
-    -- WindowButtons[name] = {}
-    -- tinsert(WindowButtons[name], dungeonButton)
-    -- tinsert(WindowButtons[name], lastWindowButton)
-    -- tinsert(WindowButtons[name], lastItemButton)
-    lastWindowButtonDistance = -1;
-    
+    lastDungeonInserted = dungeonButton  
     return dungeonButton
 end
 
@@ -297,9 +311,7 @@ local function UpdateExpensionPositions(expensionButtonPressed, expensionList)
             local currentButton = buttonMappings[name][1]
             local elementsInUpperList = tablelength(expensionButtons[expensionButtonPressed:GetText()])
             local lastButtonInUpperElement = expensionButtons[expensionButtonPressed:GetText()][elementsInUpperList]
-            -- local categoryName = expensionButtonPressed:GetText() .. lastButtonInUpperElement:GetText()
             local lastVisibleButton = CheckLastsVisible(expensionButtonPressed:GetText())
-            -- local hit = CheckLastsVisible(categoryName, expensionCategoryButtons)
             if (lastButtonInUpperElement:IsShown()) then 
                 currentButton:SetPoint("TOP", lastVisibleButton, "BOTTOM", 0, lastWindowButtonDistance)
             else 
@@ -314,9 +326,7 @@ local function UpdateExpensionPositions(expensionButtonPressed, expensionList)
 end
 
 
--- local function UpdateAnchorOfCategory(listToSearchFor, )
 
--- TODO: Handle case last category pressed
 local function UpdateCategoryPositions(categoryButtonPressed, expensionButtonParent)
     local parentText = expensionButtonParent:GetText()
     local mergedCategoryButtonPressed = parentText .. categoryButtonPressed:GetText()
@@ -367,8 +377,6 @@ local function UpdateInstancePositions(instanceButtonPressed, categoryButtonPare
             pressedButton = true
         end
     end
-    -- 
-    --UpdateCategoryPositions(categoryButtonParent, expensionButton)
     local couldNotFindSuccesor = UpdateTopAnchor(expensions[expensionName], instanceButtonPressed, categoryButtonParent, lastButtonInUpperElement, expensionName)
     if couldNotFindSuccesor then
         UpdateExpensionPositions(expensionButton, expensions)
@@ -376,7 +384,6 @@ local function UpdateInstancePositions(instanceButtonPressed, categoryButtonPare
 end
 
 local lastitemButtonInserted = nil
--- Function to create an item button
 local function CreateItemButton(itemID, parent, tableName)
     local itemButton = CreateFrame("Button", "ItemButton"..itemID, parent, "UIPanelButtonTemplate")
     if lastitemButtonInserted == nil then
@@ -386,7 +393,6 @@ local function CreateItemButton(itemID, parent, tableName)
     itemButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
     itemButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
     itemButton:SetHeight(17); 
-    itemButton:DisableDrawLayer("BACKGROUND");
     local combinedName = tableName .. itemID
     buttonMappings[combinedName] = {}
     tinsert(buttonMappings[combinedName], itemButton)
@@ -397,17 +403,25 @@ local function CreateItemButton(itemID, parent, tableName)
     itemButton:Hide()
     
     local function UpdateItemInfo()
-        local itemNameText, _, _, _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
-        if itemNameText and itemIconPath then
-            itemButton:SetText(itemNameText)
-            itemButton:GetFontString():SetPoint("LEFT", itemButton, "LEFT", 5 ,0)
-        else
-            C_Timer.After(1, UpdateItemInfo)
-        end
+    local itemNameText, _, itemQuality , _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
+    if itemNameText and itemIconPath then
+        local icon = itemButton:CreateTexture(nil, "ARTWORK")
+        icon:SetTexture(itemIconPath);
+        icon:SetSize(15,15);
+        icon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
+        itemButton:SetText(itemNameText)
+        itemButton:GetFontString():SetPoint("LEFT", icon, "RIGHT", 5 ,0)
+        local customFont = rarityFontMapping[itemQuality]
+        itemButton:SetNormalFontObject(customFont);
+
+        itemButton:DisableDrawLayer("BACKGROUND");
+    else
+        C_Timer.After(1, UpdateItemInfo)
     end
-    
+end
+
     UpdateItemInfo()
-    
+   
     local function ShowItemTooltip(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetItemByID(itemID)
