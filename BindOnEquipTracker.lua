@@ -27,6 +27,7 @@ local expensionCategoryInnerButtons = {}
 
 local buttonMappings = {}
 
+
 -- Create the scroll frame
 local scrollFrame = CreateFrame("ScrollFrame", "ScrollFrame", frame, "UIPanelScrollFrameTemplate")
 scrollFrame:SetPoint("TOPLEFT", 10, -10)
@@ -174,9 +175,7 @@ local function CreateExpensionButton(name)
     expensionButton:GetFontString():SetPoint("LEFT", expensionButton, "LEFT", 5 ,0)
     expensionButtons[name] = {}
 
-    buttonMappings[name] = {}
-    tinsert(buttonMappings[name], expensionButton)
-    tinsert(buttonMappings[name], lastWindowButton)
+    buttonMappings[name] = {expensionButton, lastWindowButton}
     lastWindowButtonDistance = -1;
 
     lastWindowButton = expensionButton
@@ -186,28 +185,23 @@ end
 local lastCategoryInserted = nil
 local function CreateCategoryButton(name, parent)
     local categoryButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
-    if lastCategoryInserted == nil then 
-        lastCategoryInserted = parent
-    end
-    
-    categoryButton:SetPoint("TOP", lastCategoryInserted,"BOTTOM", 0, lastWindowButtonDistance);
+        
+    categoryButton:SetPoint("TOP", lastCategoryInserted or parent,"BOTTOM", 0, lastWindowButtonDistance);
    
     categoryButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
     categoryButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
     categoryButton:SetHeight(17);
     categoryButton:DisableDrawLayer("BACKGROUND");
+    categoryButton:Hide()
 
     categoryButton:SetText(name);
     categoryButton:GetFontString():SetPoint("LEFT", categoryButton, "LEFT", 5 ,0)
-    categoryButton:Hide()
     local parentText = parent:GetText()
     tinsert(expensionButtons[parentText], categoryButton)
     local combinedName = parentText .. name;
     expensionCategoryButtons[combinedName] = {};
 
-    buttonMappings[combinedName] = {}
-    tinsert(buttonMappings[combinedName], categoryButton)
-    tinsert(buttonMappings[combinedName], lastCategoryInserted)
+    buttonMappings[combinedName] = {categoryButton, lastCategoryInserted or parent}
 
     lastCategoryInserted = categoryButton;
     return categoryButton
@@ -217,28 +211,21 @@ end
 local lastDungeonInserted = nil
 local function CreateDungeonButton(name, parent, tableName)
     local dungeonButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
-    if lastDungeonInserted == nil then 
-        lastDungeonInserted = parent
-    end
     
-    dungeonButton:SetPoint("TOP", lastDungeonInserted,"BOTTOM", 0, lastWindowButtonDistance);
-   
+    dungeonButton:SetPoint("TOP", lastDungeonInserted or parent,"BOTTOM", 0, lastWindowButtonDistance);
     dungeonButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
     dungeonButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
     dungeonButton:SetHeight(17);
+    dungeonButton:Hide()
     dungeonButton:DisableDrawLayer("BACKGROUND");
 
     dungeonButton:SetText(name);
     dungeonButton:GetFontString():SetPoint("LEFT", dungeonButton, "LEFT", 5 ,0)
-    dungeonButton:Hide()
     tinsert(expensionCategoryButtons[tableName], dungeonButton)
     local combinedName = tableName .. name
     expensionCategoryInnerButtons[combinedName] = {}
 
-    buttonMappings[combinedName] = {}
-    tinsert(buttonMappings[combinedName], dungeonButton)
-    tinsert(buttonMappings[combinedName], lastDungeonInserted)
-
+    buttonMappings[combinedName] = {dungeonButton, lastDungeonInserted or parent}
 
     lastDungeonInserted = dungeonButton  
     return dungeonButton
@@ -386,54 +373,45 @@ end
 local lastitemButtonInserted = nil
 local function CreateItemButton(itemID, parent, tableName)
     local itemButton = CreateFrame("Button", "ItemButton"..itemID, parent, "UIPanelButtonTemplate")
-    if lastitemButtonInserted == nil then
-        lastitemButtonInserted = parent
-    end
-    itemButton:SetPoint("TOP", lastitemButtonInserted, "BOTTOM", 0, lastWindowButtonDistance)
+
+    itemButton:SetPoint("TOP", lastitemButtonInserted or parent, "BOTTOM", 0, lastWindowButtonDistance)
     itemButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
     itemButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
     itemButton:SetHeight(17); 
     local combinedName = tableName .. itemID
-    buttonMappings[combinedName] = {}
-    tinsert(buttonMappings[combinedName], itemButton)
-    tinsert(buttonMappings[combinedName], lastitemButtonInserted)
-
+    buttonMappings[combinedName] = {itemButton, lastitemButtonInserted or parent}
 
     lastitemButtonInserted = itemButton
     itemButton:Hide()
     
     local function UpdateItemInfo()
-    local itemNameText, _, itemQuality , _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
-    if itemNameText and itemIconPath then
-        local icon = itemButton:CreateTexture(nil, "ARTWORK")
-        icon:SetTexture(itemIconPath);
-        icon:SetSize(15,15);
-        icon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
-        itemButton:SetText(itemNameText)
-        itemButton:GetFontString():SetPoint("LEFT", icon, "RIGHT", 5 ,0)
-        local customFont = rarityFontMapping[itemQuality]
-        itemButton:SetNormalFontObject(customFont);
-
-        itemButton:DisableDrawLayer("BACKGROUND");
-    else
-        C_Timer.After(1, UpdateItemInfo)
+        local itemNameText, _, itemQuality , _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
+        if itemNameText and itemIconPath then
+            local icon = itemButton:CreateTexture(nil, "ARTWORK")
+            icon:SetTexture(itemIconPath);
+            icon:SetSize(15,15);
+            icon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
+            itemButton:SetText(itemNameText)
+            itemButton:GetFontString():SetPoint("LEFT", icon, "RIGHT", 5 ,0)
+            local customFont = rarityFontMapping[itemQuality]
+            itemButton:SetNormalFontObject(customFont);
+            itemButton:DisableDrawLayer("BACKGROUND");
+        else
+            C_Timer.After(1, UpdateItemInfo)
+        end
     end
-end
 
     UpdateItemInfo()
    
-    local function ShowItemTooltip(self)
+    
+    itemButton:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetItemByID(itemID)
         GameTooltip:Show()
-    end
-    
-    local function HideItemTooltip(self)
+    end)
+    itemButton:SetScript("OnLeave", function()
         GameTooltip:Hide()
-    end
-    
-    itemButton:SetScript("OnEnter", ShowItemTooltip)
-    itemButton:SetScript("OnLeave", HideItemTooltip)
+    end)
     tinsert(expensionCategoryInnerButtons[tableName], itemButton)
     return itemButton
 end
