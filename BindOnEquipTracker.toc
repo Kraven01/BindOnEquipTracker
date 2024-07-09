@@ -4,5 +4,4 @@
 ## Author: YourName
 ## Version: 1.0.0
 
-BindOnEquipTracker.xml
 BindOnEquipTracker.lua

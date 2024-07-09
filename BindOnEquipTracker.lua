@@ -1,4 +1,4 @@
-local frame = CreateFrame("Frame", "BindOnEquipTracerFrame", UIParent)
+local frame = CreateFrame("Frame", "BindOnEquipTrackerFrame", UIParent)
 frame:SetSize(350, 400)
 frame:SetPoint("CENTER")
 frame.texture = frame:CreateTexture()
@@ -11,23 +11,22 @@ frame:EnableMouse(true)
 frame:RegisterForDrag("LeftButton")
 frame:SetScript("OnDragStart", frame.StartMoving)
 frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+frame:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Leftclick -> Move / Zoom in \nRightclick -> Zoom out")
+    GameTooltip:Show()
+end)
+frame:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+end)
 
-local WindowButtons = {}
-local lastWindowButtonDistance = -8
-
--- Store all created buttons
-local dungeonButtonsList = {}
-local itemButtons = {}
-
--- Key: CombinedName 1. button 2. originalAnchorPoint
-local buttonStates = {}
-local expensionButtons = {}
-local expensionCategoryButtons = {}
-local expensionCategoryInnerButtons = {}
-
-local buttonMappings = {}
+local lastWindowButtonDistance = -1
 
 
+local cachedExpensionButtons = {}
+local cachedCategoryButtons = {}
+local cachedDungeonButtons = {}
+local spawnedButtons = {}
 -- Create the scroll frame
 local scrollFrame = CreateFrame("ScrollFrame", "ScrollFrame", frame, "UIPanelScrollFrameTemplate")
 scrollFrame:SetPoint("TOPLEFT", 10, -10)
@@ -35,21 +34,62 @@ scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
 
 -- Create the scroll child frame (content frame)
 local content = CreateFrame("Frame", "ScrollFrameContent", scrollFrame)
-content:SetSize(260, 800) -- Width, Height (adjust height based on content)
+content:SetSize(260, 400) -- Width, Height (adjust height based on content)
 scrollFrame:SetScrollChild(content)
 
--- Create a scroll bar
-local scrollBar = CreateFrame("Slider", "ScrollBar", scrollFrame, "UIPanelScrollBarTemplate")
-scrollBar:SetPoint("TOPLEFT", mainFrame, "TOPRIGHT", -20, -20)
-scrollBar:SetPoint("BOTTOMLEFT", mainFrame, "BOTTOMRIGHT", -20, 20)
-scrollBar:SetMinMaxValues(1, 400) -- Min, Max scroll values (adjust based on content height)
-scrollBar:SetValueStep(1)
-scrollBar.scrollStep = 1
-scrollBar:SetValue(0)
-scrollBar:SetWidth(16)
-scrollBar:SetScript("OnValueChanged", function(self, value)
-    self:GetParent():SetVerticalScroll(value)
-end)
+local lastWindowButton = content
+
+
+local function ShowButton(pressedButton)
+    tinsert(spawnedButtons, pressedButton)
+    if lastWindowButton == content then
+        pressedButton:SetPoint("TOP", lastWindowButton,"TOP", 0, lastWindowButtonDistance);
+    else 
+        pressedButton:SetPoint("TOP", lastWindowButton,"BOTTOM", 0, lastWindowButtonDistance);
+    end
+    pressedButton:SetPoint("LEFT", lastWindowButton, "LEFT", 300, 0);
+    pressedButton:SetPoint("RIGHT", lastWindowButton, "LEFT", 0, 0);
+    pressedButton:Show();
+    lastWindowButton = pressedButton;
+end
+
+local function HideButtons()
+    for _, buttonToHide in ipairs(spawnedButtons) do
+        buttonToHide:Hide()
+    end
+    spawnedButtons = {}
+    lastWindowButton = content
+end
+
+local function HandleMouseClick(self, button)
+    scrollFrame:SetVerticalScroll(0)
+    if self:GetName() == "ScrollFrame" and button == "RightButton" then
+        local child = spawnedButtons[1]
+        self = child
+    end
+    if button == "RightButton" then 
+        HideButtons()
+        for _, parentButton in pairs(self.showOnRightClick) do
+
+            local mergedNameOfButton = self.mergedParentName .. _
+            if self.mergedName == "item" then 
+                mergedNameOfButton = self.mergedParentName .. parentButton
+            end
+            local correspondingButton = cachedExpensionButtons[mergedNameOfButton] or cachedCategoryButtons[mergedNameOfButton] or cachedDungeonButtons[mergedNameOfButton]
+            ShowButton(correspondingButton)
+        end
+    else
+        if self.mergedName == "item" or self:GetName() == "ScrollFrame" then
+            return
+        end
+        HideButtons()
+        for _, childButton in ipairs(self.spawnedChildButtons) do
+            ShowButton(childButton)
+        end
+    end
+end
+
+scrollFrame:SetScript("OnMouseUp",HandleMouseClick);
 
 local expensions = {
     ["Classic"] = {
@@ -74,7 +114,7 @@ local expensions = {
         },
         Raids = {
             "Molten Core",
-            "Blackwin Lair",
+            "Blackwing Lair",
             "Ruins of Ahn'Qiraj"
         }
     },
@@ -99,14 +139,10 @@ local dungeons = {
 ["Wailing Caverns"] = {48114,10413,132743},
 ["Zul'Farrak"] = {940,1168,14263,14441,15622,15628,15619,15627,15623,14796,14792,14794,14793,14948,14953,14955,14951,14949,14950,14842,14840,14843,14839,14835,14841,14838,14834,14920,14918,14914,14917,14970,14974,14966, 142402,9512,9511,9480,9483,5616,9484,9481,2040,9482,204406},
 ["Molten Core"] = {16802,16799,16864,16861,16828,16830,16838,16840,16806,16804,16851,16850,16817,16858,16857,16827,16825,16819,170100,17011,18260,18259,21371,18265,18257,11382},
-["Blackwin Lair"] = {18562},
+["Blackwing Lair"] = {18562},
 ["Ruins of Ahn'Qiraj"] = {14968,14971,14967,14974,14970,14972,14854,14859,14855,14857,14975,14977,14976,14978,14981,14983,15646,15640,15645,14798,14802,14805,14803,14922,14924,14926,14928,14317,14310,14314,14309,14311,14315,15649,15651,15654,15656,15650,15655,15694,15426,15431,15425,15429,15433,15658,15660,15663,15666,15659,15662,15665,15668,15672,15674,15669,15673,15676, 21801,21804,21803,21805,21800,21802},
 }
-local function tablelength(T)
-    local count = 0
-    for _ in pairs(T) do count = count + 1 end
-    return count
-  end
+
  
   local rarityColorMapping = {
     [0] = {
@@ -141,7 +177,6 @@ local function tablelength(T)
     }
 }
 
-
 local rarityFontMapping = {}
 
 local function createRarityFontMapping()
@@ -157,308 +192,74 @@ local function createRarityFontMapping()
 end
 createRarityFontMapping()
 
-local lastWindowButton = content
-local lastItemButton = nil
-local function CreateExpensionButton(name)
-    local expensionButton = CreateFrame("Button", name.."Button", content, "UIPanelButtonTemplate");
-    if lastWindowButton == content then
-        expensionButton:SetPoint("TOP", lastWindowButton,"TOP", 0, lastWindowButtonDistance);
-    else 
-        expensionButton:SetPoint("TOP", lastWindowButton,"BOTTOM", 0, lastWindowButtonDistance);
-    end
-        
-    expensionButton:SetPoint("LEFT", lastWindowButton, "LEFT", 300, 0)
-    expensionButton:SetPoint("RIGHT", lastWindowButton, "LEFT", 0, 0);
-    expensionButton:SetHeight(17);
-    expensionButton:DisableDrawLayer("BACKGROUND");
-    expensionButton:SetText(name);
-    expensionButton:GetFontString():SetPoint("LEFT", expensionButton, "LEFT", 5 ,0)
-    expensionButtons[name] = {}
-
-    buttonMappings[name] = {expensionButton, lastWindowButton}
-    lastWindowButtonDistance = -1;
-
-    lastWindowButton = expensionButton
-    return expensionButton
-end
-
-local lastCategoryInserted = nil
-local function CreateCategoryButton(name, parent)
-    local categoryButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
-        
-    categoryButton:SetPoint("TOP", lastCategoryInserted or parent,"BOTTOM", 0, lastWindowButtonDistance);
-   
-    categoryButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
-    categoryButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
-    categoryButton:SetHeight(17);
-    categoryButton:DisableDrawLayer("BACKGROUND");
-    categoryButton:Hide()
-
-    categoryButton:SetText(name);
-    categoryButton:GetFontString():SetPoint("LEFT", categoryButton, "LEFT", 5 ,0)
-    local parentText = parent:GetText()
-    tinsert(expensionButtons[parentText], categoryButton)
-    local combinedName = parentText .. name;
-    expensionCategoryButtons[combinedName] = {};
-
-    buttonMappings[combinedName] = {categoryButton, lastCategoryInserted or parent}
-
-    lastCategoryInserted = categoryButton;
-    return categoryButton
-end
-
-
-local lastDungeonInserted = nil
-local function CreateDungeonButton(name, parent, tableName)
-    local dungeonButton = CreateFrame("Button", name.."Button", parent, "UIPanelButtonTemplate");
-    
-    dungeonButton:SetPoint("TOP", lastDungeonInserted or parent,"BOTTOM", 0, lastWindowButtonDistance);
-    dungeonButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
-    dungeonButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
-    dungeonButton:SetHeight(17);
-    dungeonButton:Hide()
-    dungeonButton:DisableDrawLayer("BACKGROUND");
-
-    dungeonButton:SetText(name);
-    dungeonButton:GetFontString():SetPoint("LEFT", dungeonButton, "LEFT", 5 ,0)
-    tinsert(expensionCategoryButtons[tableName], dungeonButton)
-    local combinedName = tableName .. name
-    expensionCategoryInnerButtons[combinedName] = {}
-
-    buttonMappings[combinedName] = {dungeonButton, lastDungeonInserted or parent}
-
-    lastDungeonInserted = dungeonButton  
-    return dungeonButton
-end
-
-local function UpdateTopAnchor(listToSearchForButton, buttonPressed, parentButton, lastButtonInUpperElement, prefix)
-    local pressedButton = false;
-    for name, _ in pairs(listToSearchForButton) do 
-        if pressedButton then
-            local mergedName = prefix .. name
-            local currentButton = buttonMappings[mergedName][1]
-            if lastButtonInUpperElement:IsShown() then 
-                currentButton:SetPoint("TOP", lastButtonInUpperElement, "BOTTOM", 0, lastWindowButtonDistance)
-            else 
-                currentButton:SetPoint("TOP", buttonPressed, "BOTTOM", lastWindowButtonDistance) 
-            end
-            return
-        end
-        if parentButton:GetText() == name then
-            pressedButton = true;
-        end;
-    end
-    return true;
-end
-
-
-local function CheckLastVisibleForCategory(categoryName, expansionName)
-    local elementsInList = tablelength(expensionCategoryButtons[expansionName .. categoryName]);
-    local lastButtonInList = expensionCategoryButtons[expansionName .. categoryName][elementsInList]
-    local lastButtonText = lastButtonInList:GetText()
-    local mergedText = expansionName .. categoryName .. lastButtonText;
-    local elementsInInstanceList = tablelength(expensionCategoryInnerButtons[mergedText])
-    local lastDungeonButton = expensionCategoryInnerButtons[mergedText][elementsInInstanceList];
-    if lastDungeonButton:IsShown() then
-        return lastDungeonButton;
-    else
-        return lastButtonInList;
-    end
-
-end
-
-local function CheckLastsVisible(expensionName)
-    local elementsInList = tablelength(expensionButtons[expensionName]);
-    local lastButtonInList = expensionButtons[expensionName][elementsInList]
-    local lastButtonText = lastButtonInList:GetText()
-    local mergedText = expensionName .. lastButtonText;
-    local elementsInInstanceList = tablelength(expensionCategoryButtons[mergedText])
-    local lastDungeonButton = expensionCategoryButtons[mergedText][elementsInInstanceList];
-    if lastDungeonButton:IsShown() then
-        local mergedInstanceName = mergedText .. lastDungeonButton:GetText()
-        local elementsInItemList = tablelength(expensionCategoryInnerButtons[mergedInstanceName])
-        local lastItemButton = expensionCategoryInnerButtons[mergedInstanceName][elementsInItemList]
-        if lastItemButton:IsShown() then
-            return lastItemButton;
-        else
-            return lastDungeonButton;
-        end
-    else
-        return lastButtonInList;
-    end
-
-end
-
-
-local function UpdateExpensionPositions(expensionButtonPressed, expensionList)
-    local pressedButton = false;
-    local lastButtonInUpperElement
-    for name , data in pairs(expensionList) do
-        if pressedButton then
-            local currentButton = buttonMappings[name][1]
-            local elementsInUpperList = tablelength(expensionButtons[expensionButtonPressed:GetText()])
-            local lastButtonInUpperElement = expensionButtons[expensionButtonPressed:GetText()][elementsInUpperList]
-            local lastVisibleButton = CheckLastsVisible(expensionButtonPressed:GetText())
-            if (lastButtonInUpperElement:IsShown()) then 
-                currentButton:SetPoint("TOP", lastVisibleButton, "BOTTOM", 0, lastWindowButtonDistance)
-            else 
-                currentButton:SetPoint("TOP", buttonMappings[name][2], "BOTTOM", 0, lastWindowButtonDistance)
-            end
-            break
-        end
-        if name == expensionButtonPressed:GetText() then
-            pressedButton = true;
-        end
-    end
-end
-
-
-
-local function UpdateCategoryPositions(categoryButtonPressed, expensionButtonParent)
-    local parentText = expensionButtonParent:GetText()
-    local mergedCategoryButtonPressed = parentText .. categoryButtonPressed:GetText()
-    local pressedButton = false;
-    local lastButtonInUpperElement = nil;
-    local test = nil
-    for category, _ in pairs(expensions[parentText]) do
-        local mergedName = parentText .. category;
-        local currentButton = buttonMappings[mergedName][1]
-        local elementsInUpperList = tablelength(expensionCategoryButtons[mergedCategoryButtonPressed]);
-        lastButtonInUpperElement = expensionCategoryButtons[mergedCategoryButtonPressed][elementsInUpperList]
-        if pressedButton then
-            if (lastButtonInUpperElement:IsShown()) then 
-                currentButton:SetPoint("TOP", test, "BOTTOM", 0, lastWindowButtonDistance)
-            else 
-                currentButton:SetPoint("TOP", buttonMappings[mergedName][2], "BOTTOM", 0, lastWindowButtonDistance)
-            end
-            return;
-
-        end
-        if currentButton:GetText() == categoryButtonPressed:GetText() then
-            pressedButton = true;
-            test = CheckLastVisibleForCategory(category, parentText)
-        end
-    end
-    UpdateExpensionPositions(expensionButtonParent, expensions)
-end
-
-local function UpdateInstancePositions(instanceButtonPressed, categoryButtonParent, expensionName, expensionButton)
-    local categoryText = categoryButtonParent:GetText()
-    local mergedName = expensionName .. categoryText .. instanceButtonPressed:GetText()
-    local pressedButton = false;
-    local lastButtonInUpperElement = nil;
-    for _, instanceName in ipairs(expensions[expensionName][categoryText]) do
-        local mergedNameOfCurrentButton = expensionName .. categoryText .. instanceName;
-        local currentButton = buttonMappings[mergedNameOfCurrentButton][1];
-        local elementsInUpperList = tablelength(expensionCategoryInnerButtons[mergedName]);
-        lastButtonInUpperElement = expensionCategoryInnerButtons[mergedName][elementsInUpperList];
-        if pressedButton then
-            if (lastButtonInUpperElement:IsShown()) then 
-                currentButton:SetPoint("TOP", lastButtonInUpperElement, "BOTTOM", 0, lastWindowButtonDistance)
-            else 
-                currentButton:SetPoint("TOP", buttonMappings[mergedNameOfCurrentButton][2], "BOTTOM", 0, lastWindowButtonDistance)
-            end
-            return;
-        end
-        if currentButton:GetText() == instanceButtonPressed:GetText() then
-            pressedButton = true
-        end
-    end
-    local couldNotFindSuccesor = UpdateTopAnchor(expensions[expensionName], instanceButtonPressed, categoryButtonParent, lastButtonInUpperElement, expensionName)
-    if couldNotFindSuccesor then
-        UpdateExpensionPositions(expensionButton, expensions)
-    end
-end
-
-local lastitemButtonInserted = nil
-local function CreateItemButton(itemID, parent, tableName)
-    local itemButton = CreateFrame("Button", "ItemButton"..itemID, parent, "UIPanelButtonTemplate")
-
-    itemButton:SetPoint("TOP", lastitemButtonInserted or parent, "BOTTOM", 0, lastWindowButtonDistance)
-    itemButton:SetPoint("LEFT", parent, "LEFT", 300, -8)
-    itemButton:SetPoint("RIGHT", parent, "LEFT", 8, -8);
-    itemButton:SetHeight(17); 
-    local combinedName = tableName .. itemID
-    buttonMappings[combinedName] = {itemButton, lastitemButtonInserted or parent}
-
-    lastitemButtonInserted = itemButton
-    itemButton:Hide()
-    
-    local function UpdateItemInfo()
-        local itemNameText, _, itemQuality , _, _, _, _, _, _, itemIconPath = GetItemInfo(itemID)
-        if itemNameText and itemIconPath then
-            local icon = itemButton:CreateTexture(nil, "ARTWORK")
-            icon:SetTexture(itemIconPath);
-            icon:SetSize(15,15);
-            icon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
-            itemButton:SetText(itemNameText)
-            itemButton:GetFontString():SetPoint("LEFT", icon, "RIGHT", 5 ,0)
-            local customFont = rarityFontMapping[itemQuality]
-            itemButton:SetNormalFontObject(customFont);
-            itemButton:DisableDrawLayer("BACKGROUND");
-        else
-            C_Timer.After(1, UpdateItemInfo)
-        end
-    end
-
-    UpdateItemInfo()
-   
-    
-    itemButton:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetItemByID(itemID)
-        GameTooltip:Show()
-    end)
-    itemButton:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-    tinsert(expensionCategoryInnerButtons[tableName], itemButton)
-    return itemButton
-end
-
-
-
-local function ToggleButtons(listOfButtons, prefix, tableToSearch)
-    for _, button in ipairs(listOfButtons) do
-        if button:IsShown() then
-            button:Hide()
-        else
-            button:Show()
-        end
-    end
+local function CreateButton(buttonText, parentName)
+    isItem = isItem or false
+    local currentButton = CreateFrame("Button", buttonText.."Button", content, "UIPanelButtonTemplate");
+    currentButton:SetHeight(17);
+    currentButton:DisableDrawLayer("BACKGROUND");
+    currentButton:SetText(buttonText);
+    currentButton:GetFontString():SetPoint("LEFT", currentButton, "LEFT", 5 ,0)
+    currentButton.spawnedChildButtons = {}
+    currentButton:Hide()
+    currentButton.mergedName = parentName .. buttonText;
+    currentButton:SetScript("OnMouseUp",HandleMouseClick);
+    return currentButton
 end
 
 for expansion, content in pairs(expensions) do
-    print(expansion)
-    local expensionButton = CreateExpensionButton(expansion)
-    lastCategoryInserted = nil
-    expensionButton:SetScript("OnClick", function()
-        ToggleButtons(expensionButtons[expansion], expansion, expensionCategoryButtons)
-        UpdateExpensionPositions(expensionButton, expensions)
-    end)
+    local expensionButton = CreateButton(expansion, "");
+    ShowButton(expensionButton)
+    cachedExpensionButtons[expensionButton.mergedName] = expensionButton;
+    expensionButton.showOnRightClick = expensions;
+    expensionButton.mergedParentName = "";
     for contentType, contentList in pairs(content) do
-        local categoryButton = CreateCategoryButton(contentType, expensionButton)
-        lastDungeonInserted = nil;
-        local mergedName = expansion .. contentType
-        categoryButton:SetScript("OnClick", function()
-            ToggleButtons(expensionCategoryButtons[mergedName], expansion, expensionCategoryButtons)
-            UpdateCategoryPositions(categoryButton, expensionButton)
-        end);
+        local categoryButton = CreateButton(contentType, expensionButton.mergedName);
+        categoryButton.showOnRightClick = expensions
+        categoryButton.mergedParentName = ""
+        tinsert(expensionButton.spawnedChildButtons, categoryButton)
+        cachedCategoryButtons[categoryButton.mergedName] = categoryButton;
         for _, instance in ipairs(contentList) do
-            local dungeonButton = CreateDungeonButton(instance, categoryButton, mergedName)
-            lastitemButtonInserted = nil
-            local mergedNameForItemTable = mergedName .. instance
-            dungeonButton:SetScript("OnClick", function()
-                ToggleButtons(expensionCategoryInnerButtons[mergedNameForItemTable], mergedName)
-                UpdateInstancePositions(dungeonButton, categoryButton, expansion, expensionButton)
-            end);
+            local dungeonButton = CreateButton(instance, categoryButton.mergedName);
+            tinsert(categoryButton.spawnedChildButtons, dungeonButton)
+            dungeonButton.showOnRightClick = expensions[expansion]
+            dungeonButton.mergedParentName = expansion
+            cachedDungeonButtons[dungeonButton.mergedName] = dungeonButton;
             for _, itemData in pairs(dungeons[instance]) do
-                local itemButton = CreateItemButton(itemData, dungeonButton, mergedNameForItemTable)
+
+                local function UpdateItemInfo()
+                    local itemNameText, _, itemQuality , _, _, _, _, _, _, itemIconPath = GetItemInfo(itemData)
+                    if itemNameText and itemIconPath and itemQuality then
+                        local itemButton = CreateButton(itemNameText, dungeonButton.mergedName)
+                        itemButton.showOnRightClick = expensions[expansion][contentType]
+                        itemButton.mergedParentName = expansion .. contentType
+                        tinsert(dungeonButton.spawnedChildButtons, itemButton)
+                        itemButton:SetScript("OnEnter", function(self)
+                            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                            GameTooltip:SetItemByID(itemData)
+                            GameTooltip:Show()
+                        end)
+                        itemButton:SetScript("OnLeave", function()
+                            GameTooltip:Hide()
+                        end)
+                        local customFont = rarityFontMapping[itemQuality]
+                        itemButton:SetNormalFontObject(customFont);
+                        local icon = itemButton:CreateTexture(nil, "ARTWORK")
+                        icon:SetTexture(itemIconPath);
+                        icon:SetSize(15,15);
+                        icon:SetPoint("LEFT", itemButton, "LEFT", 5, 0)
+                        itemButton:GetFontString():SetPoint("LEFT", icon, "RIGHT", 5 ,0)
+                        itemButton.mergedName = "item"
+                    else
+                        C_Timer.After(1, UpdateItemInfo)
+                    end
+                end
+                    
+                UpdateItemInfo()
             end
         end
     end
-end
 
+end
 
 local function SlashCmdHandler(msg, editBox)
     if msg == "show" then
@@ -475,7 +276,7 @@ SLASH_BINDONEQUIPTRACKER2  = "/boetracker"
 SlashCmdList["BINDONEQUIPTRACKER"] = SlashCmdHandler
 
 local function OnPlayerLogin(self, event, ...)
-    print("boetracker addon loaded. Type /boetracker show to display the frame or /boetracker hide to hide it.")
+    print("boetracker addon loaded. Type /bt show to display the frame or /bt hide to hide it.")
 end
 
 local eventFrame = CreateFrame("Frame")
