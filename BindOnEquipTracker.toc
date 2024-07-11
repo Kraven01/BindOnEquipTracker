@@ -2,6 +2,6 @@
 ## Title: BindOnEquipTracker
 ## Notes: Tracks inst ance boe items
 ## Author: Kraven01
-## Version: 1.0.1
+## Version: 1.0.0
 
 BindOnEquipTracker.lua
