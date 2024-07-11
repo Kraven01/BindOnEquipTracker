@@ -54,3 +54,9 @@ If you detect wrongly assigned items or missing items, feel free to report an is
 
 ## License
 This addon is licensed under the MIT License. See the LICENSE file for details.
+
+Changelog
+[1.0.1] - 11-07-2024
+Added
+- Top bar for easier drag and drop.
+- Close button to hide the frame.

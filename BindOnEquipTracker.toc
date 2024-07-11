@@ -1,6 +1,6 @@
 ## Interface: 90005
 ## Title: BindOnEquipTracker
-## Notes: Tracks inst ance boe items
+## Notes: Tracks instance boe items
 ## Author: Kraven01
 ## Version: 1.0.1
 
