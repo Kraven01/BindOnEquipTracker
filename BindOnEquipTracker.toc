@@ -1,7 +1,7 @@
 ## Interface: 90005
 ## Title: BindOnEquipTracker
-## Notes: Collects dungeon items
-## Author: YourName
-## Version: 1.0.0
+## Notes: Tracks inst ance boe items
+## Author: Kraven01
+## Version: 1.0.1
 
 BindOnEquipTracker.lua

@@ -20,6 +20,44 @@ frame:SetScript("OnLeave", function()
     GameTooltip:Hide()
 end)
 
+local closeButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT")
+closeButton:SetSize(30,30)
+closeButton:SetScript("OnClick", function()
+    frame:Hide()
+end)
+
+-- Create the title bar
+local titleBar = CreateFrame("Frame", nil, frame)
+titleBar:SetSize(350, 30)
+titleBar:SetPoint("TOP", frame, "TOP")
+titleBar.texture = titleBar:CreateTexture()
+titleBar.texture:SetAllPoints(titleBar)
+titleBar.texture:SetColorTexture(0, 0, 0, 0.8)
+titleBar:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Leftclick -> Move / Zoom in \nRightclick -> Zoom out")
+    GameTooltip:Show()
+end)
+titleBar:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+end)
+
+-- Add the title text
+local titleText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+titleText:SetPoint("CENTER", titleBar, "CENTER")
+titleText:SetText("Bind on Equip Tracker")
+
+-- Adjust frame drag behavior to include title bar
+titleBar:EnableMouse(true)
+titleBar:RegisterForDrag("LeftButton")
+titleBar:SetScript("OnDragStart", function()
+    frame:StartMoving()
+end)
+titleBar:SetScript("OnDragStop", function()
+    frame:StopMovingOrSizing()
+end)
+
 local lastWindowButtonDistance = -1
 
 
@@ -29,7 +67,7 @@ local cachedDungeonButtons = {}
 local spawnedButtons = {}
 -- Create the scroll frame
 local scrollFrame = CreateFrame("ScrollFrame", "ScrollFrame", frame, "UIPanelScrollFrameTemplate")
-scrollFrame:SetPoint("TOPLEFT", 10, -10)
+scrollFrame:SetPoint("TOPLEFT", 10, -30)
 scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
 
 -- Create the scroll child frame (content frame)
